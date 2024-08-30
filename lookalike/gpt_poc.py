@@ -25,11 +25,7 @@ messages = [context, {'role':'user', 'content': prompt}]
 
 start_time = time.time()
 
-client = AzureOpenAI(
-  azure_endpoint = "https://openai-us-east.openai.azure.com/", 
-  api_key=  "f923fd20f0b34a888e9c9edaaf31fb39",
-  api_version="2024-02-01"
-)
+
 
 response = client.chat.completions.create(
     model="gpt-4o", # model = "deployment_name".
