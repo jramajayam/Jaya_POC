@@ -33,10 +33,34 @@ Usage:
 
 import os
 import re
+import sys
 import json
+import pickle
 import warnings
+
+# ── numpy 2.x → 1.x compatibility shim ──
+# Artifacts saved with numpy 2.x reference `numpy._core` internally;
+# numpy 1.x (e.g. Databricks runtime) only has `numpy.core`.
+# Custom Unpickler remaps module names during deserialization.
 import numpy as np
-import joblib
+
+
+class _NumpyCompatUnpickler(pickle.Unpickler):
+    """Unpickler that remaps numpy._core → numpy.core for numpy 1.x compat."""
+    def find_class(self, module: str, name: str):
+        if module.startswith('numpy._core'):
+            module = module.replace('numpy._core', 'numpy.core', 1)
+        return super().find_class(module, name)
+
+
+def _load_pkl(path: str):
+    """Load a pickle file with numpy 2→1 compatibility."""
+    with open(path, 'rb') as f:
+        if hasattr(np, '_core'):
+            return pickle.load(f)
+        return _NumpyCompatUnpickler(f).load()
+
+
 from scipy.sparse import hstack
 
 warnings.filterwarnings('ignore')
@@ -50,16 +74,16 @@ class AssetCategoryClassifier:
 
     def __init__(self, artifacts_dir: str = ARTIFACTS_DIR):
         """Load all model artifacts from disk."""
-        self.model = joblib.load(os.path.join(artifacts_dir, 'mlp_model.joblib'))
-        self.scaler = joblib.load(os.path.join(artifacts_dir, 'scaler.joblib'))
-        self.mlb = joblib.load(os.path.join(artifacts_dir, 'mlb.joblib'))
-        self.tfidf_word = joblib.load(os.path.join(artifacts_dir, 'tfidf_word.joblib'))
-        self.tfidf_char = joblib.load(os.path.join(artifacts_dir, 'tfidf_char.joblib'))
-        self.svd = joblib.load(os.path.join(artifacts_dir, 'svd.joblib'))
-        self.top_ports = joblib.load(os.path.join(artifacts_dir, 'top_ports.joblib'))
-        self.top_servers = joblib.load(os.path.join(artifacts_dir, 'top_servers.joblib'))
-        self.all_techs = joblib.load(os.path.join(artifacts_dir, 'all_techs.joblib'))
-        self.feature_columns = joblib.load(os.path.join(artifacts_dir, 'feature_columns.joblib'))
+        self.model = _load_pkl(os.path.join(artifacts_dir, 'mlp_model.pkl'))
+        self.scaler = _load_pkl(os.path.join(artifacts_dir, 'scaler.pkl'))
+        self.mlb = _load_pkl(os.path.join(artifacts_dir, 'mlb.pkl'))
+        self.tfidf_word = _load_pkl(os.path.join(artifacts_dir, 'tfidf_word.pkl'))
+        self.tfidf_char = _load_pkl(os.path.join(artifacts_dir, 'tfidf_char.pkl'))
+        self.svd = _load_pkl(os.path.join(artifacts_dir, 'svd.pkl'))
+        self.top_ports = _load_pkl(os.path.join(artifacts_dir, 'top_ports.pkl'))
+        self.top_servers = _load_pkl(os.path.join(artifacts_dir, 'top_servers.pkl'))
+        self.all_techs = _load_pkl(os.path.join(artifacts_dir, 'all_techs.pkl'))
+        self.feature_columns = _load_pkl(os.path.join(artifacts_dir, 'feature_columns.pkl'))
 
         # Categories the model can predict
         self.categories = list(self.mlb.classes_)
