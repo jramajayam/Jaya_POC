@@ -1,0 +1,2 @@
+MODEL = "o1"
+REASONING_EFFORT = "medium"
