@@ -72,14 +72,14 @@ The LLM never sees the MLP predictions — it classifies each asset on its own u
 
 ## Quick Start
 
-### 1. Clone & enter the project
+### 1. Clone the repo and navigate into the `llm_as_judge` folder
 
 ```bash
 git clone https://github.com/jramajayam/Jaya_POC.git
-cd Jaya_POC          # or wherever you place these files
+cd Jaya_POC/llm_as_judge
 ```
 
-### 2. Create a virtual environment
+### 2. Create a virtual environment and activate it
 
 ```bash
 python3 -m venv .venv
@@ -93,29 +93,49 @@ source .venv/bin/activate      # macOS / Linux
 pip install -r requirements.txt
 ```
 
-### 4. Set your API key
+This installs: `requests`, `python-dotenv`, `pytest`.
 
-```bash
-cp .env.example .env
-```
-
-Open `.env` and replace the placeholder with your real Azure OpenAI key:
-
-```
-AZURE_OPENAI_API_KEY=<your-real-key>
-AZURE_OPENAI_ENDPOINT=https://openai-us-east2.openai.azure.com/
-AZURE_OPENAI_API_VERSION=2025-04-01-preview
-```
-
-> **⚠️  Never commit `.env` to Git.** It is already in `.gitignore`.
-
-### 5. Run the tests (no API key needed — all LLM calls are mocked)
+### 4. Run the tests (no API key needed — everything is mocked)
 
 ```bash
 python -m pytest tests/test_llm_judge.py -v
 ```
 
-You should see **24 passed** in under 1 second.
+You should see **24 passed** in under 1 second. No Azure credentials required for this step.
+
+### 5. Set up your API key (needed only for real LLM calls)
+
+Copy the example env file to create your own `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Now open the `.env` file in any text editor and replace the placeholder:
+
+```dotenv
+# ─── BEFORE (placeholder) ───
+AZURE_OPENAI_API_KEY=your-api-key-here
+
+# ─── AFTER (your real key) ───
+AZURE_OPENAI_API_KEY=abc123def456...
+```
+
+The other two values already have working defaults — only change them if your
+Azure setup is different:
+
+```dotenv
+AZURE_OPENAI_ENDPOINT=https://openai-us-east2.openai.azure.com/
+AZURE_OPENAI_API_VERSION=2025-04-01-preview
+```
+
+> **⚠️  Never commit `.env` to Git.** It is already in `.gitignore`.
+>
+> If you forget to create `.env`, you will see this error on startup:
+> ```
+> EnvironmentError: AZURE_OPENAI_API_KEY not set.
+>                   Copy .env.example → .env and fill in your key.
+> ```
 
 ---
 
